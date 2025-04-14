@@ -17,3 +17,7 @@
 - vertical_alignment: выравнивание по вертикали
 - column: колонка
 - row: строка
+
+## Папка с виртуальным окружением:
+- ./venv/bin/python 
+- ./.venv/bin/python
