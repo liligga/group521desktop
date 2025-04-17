@@ -18,12 +18,14 @@ def main(page: ft.Page):
     # функция, которая будет вызываться при нажатии кнопки
     def click_button(e):
         print(todo_input.value)
-        new_todo = f"{todo_input.value}, {category_input.value}"  # делаем строку для отображения, состоящий из двух полей
-        new_text = ft.Text(
-            value=new_todo, size=20, color=ft.Colors.PINK
-        )  # создаем текстовый элемент
+
         todo_list_area.controls.append(
-            new_text
+            ft.Row(
+                controls=[
+                    ft.Text(value=todo_input.value, size=20, color=ft.Colors.PINK),
+                    ft.Text(value=category_input.value, size=20),
+                ]
+            )
         )  # добавляем новый текстовый элемент с новым делом в колонку
 
         page.update()  # обновляем страницу, обязательно а то не будет работать
@@ -45,12 +47,14 @@ def main(page: ft.Page):
         bgcolor=ft.Colors.AMBER,  # цвет фона кнопки
     )
 
+    form_area = ft.Row(controls=[todo_input, category_input, add_button])
+
     # создание колонки
     todo_list_area = ft.Column()  # место, где будет отображаться список
 
     # добавление элементов на страницу(окно)
     page.add(
-        title, todo_input, category_input, add_button, todo_list_area
+        title, form_area, todo_list_area
     )  # от того, в каком порядке они тут добавляются, зависит в каком порядке они отображаются
 
 
