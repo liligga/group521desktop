@@ -4,16 +4,10 @@ import flet as ft
 def main(page: ft.Page):
     # установка заголовка
     page.title = "Приложение для управления списком дел"
-    todo_list = []  # список дел
 
     title = ft.Text(
         value="Список дел на день", size=30, weight=ft.FontWeight.BOLD, italic=True
     )
-
-    # функция, которая будет вызываться при изменении значения текстового поля
-    def change_todo(e):
-        # print(todo_input.value)
-        pass
 
     # функция, которая будет вызываться при нажатии кнопки
     def click_button(e):
@@ -24,16 +18,27 @@ def main(page: ft.Page):
                 controls=[
                     ft.Text(value=todo_input.value, size=20, color=ft.Colors.PINK),
                     ft.Text(value=category_input.value, size=20),
+                    ft.IconButton(
+                        icon=ft.Icons.EDIT_OUTLINED,
+                        icon_color=ft.Colors.BLUE,
+                        icon_size=20,
+                    ),
+                    ft.IconButton(
+                        icon=ft.Icons.DELETE_OUTLINED,
+                        icon_color=ft.Colors.RED,
+                        icon_size=20,
+                    ),
                 ]
             )
         )  # добавляем новый текстовый элемент с новым делом в колонку
-
+        todo_input.value = ""  # очищаем поле ввода
+        category_input.value = ""
+        todo_input.focus()
         page.update()  # обновляем страницу, обязательно а то не будет работать
 
     # создание текстового поля
     todo_input = ft.TextField(
         label="Введите что-нибудь",  # текст подсказки
-        on_change=change_todo,  # функция, которая будет вызываться при изменении значения
     )
     category_input = ft.TextField(
         label="Введите категорию",  # текст подсказки
@@ -50,7 +55,9 @@ def main(page: ft.Page):
     form_area = ft.Row(controls=[todo_input, category_input, add_button])
 
     # создание колонки
-    todo_list_area = ft.Column()  # место, где будет отображаться список
+    todo_list_area = ft.Column(
+        expand=True, scroll="always"
+    )  # место, где будет отображаться список
 
     # добавление элементов на страницу(окно)
     page.add(
