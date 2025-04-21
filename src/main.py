@@ -1,36 +1,49 @@
 import flet as ft
+from database import Database
+from pprint import pprint
 
 
 def main(page: ft.Page):
     # установка заголовка
     page.title = "Приложение для управления списком дел"
+    database = Database("database.sqlite")
+    database.create_tables()
+    pprint(database.all_todos())
 
     title = ft.Text(
         value="Список дел на день", size=30, weight=ft.FontWeight.BOLD, italic=True
     )
 
-    # функция, которая будет вызываться при нажатии кнопки
-    def click_button(e):
-        print(todo_input.value)
-
-        todo_list_area.controls.append(
-            ft.Row(
-                controls=[
-                    ft.Text(value=todo_input.value, size=20, color=ft.Colors.PINK),
-                    ft.Text(value=category_input.value, size=20),
-                    ft.IconButton(
-                        icon=ft.Icons.EDIT_OUTLINED,
-                        icon_color=ft.Colors.BLUE,
-                        icon_size=20,
-                    ),
-                    ft.IconButton(
-                        icon=ft.Icons.DELETE_OUTLINED,
-                        icon_color=ft.Colors.RED,
-                        icon_size=20,
-                    ),
-                ]
+    def build_rows():
+        rows = []
+        for t in database.all_todos():
+            print(t)
+            rows.append(
+                ft.Row(
+                    controls=[
+                        ft.Text(value=t[1], size=20, color=ft.Colors.PINK),
+                        ft.Text(value=t[2], size=20),
+                        ft.IconButton(
+                            icon=ft.Icons.EDIT_OUTLINED,
+                            icon_color=ft.Colors.BLUE,
+                            icon_size=20,
+                        ),
+                        ft.IconButton(
+                            icon=ft.Icons.DELETE_OUTLINED,
+                            icon_color=ft.Colors.RED,
+                            icon_size=20,
+                        ),
+                    ]
+                )
             )
-        )  # добавляем новый текстовый элемент с новым делом в колонку
+        return rows
+
+    # функция, которая будет вызываться при нажатии кнопки
+    def add_todo(e):
+        print(todo_input.value)
+        database.add_todo(todo_input.value, category_input.value)
+
+        todo_list_area.controls = build_rows()
         todo_input.value = ""  # очищаем поле ввода
         category_input.value = ""
         todo_input.focus()
@@ -47,7 +60,7 @@ def main(page: ft.Page):
     # создание кнопки
     add_button = ft.ElevatedButton(
         "Добавить",  # текст на кнопке
-        on_click=click_button,  # функция, которая будет вызываться при нажатии
+        on_click=add_todo,  # функция, которая будет вызываться при нажатии
         color=ft.Colors.PINK,  # цвет текста на кнопке
         bgcolor=ft.Colors.AMBER,  # цвет фона кнопки
     )
@@ -56,7 +69,7 @@ def main(page: ft.Page):
 
     # создание колонки
     todo_list_area = ft.Column(
-        expand=True, scroll="always"
+        expand=True, scroll="always", controls=build_rows()
     )  # место, где будет отображаться список
 
     # добавление элементов на страницу(окно)
