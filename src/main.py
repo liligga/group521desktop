@@ -6,7 +6,10 @@ from pprint import pprint
 def main(page: ft.Page):
     # установка заголовка
     page.title = "Приложение для управления списком дел"
+
+    # создание объекта Database для работы с БД
     database = Database("database.sqlite")
+    # создание таблиц
     database.create_tables()
     pprint(database.all_todos())
 
@@ -14,20 +17,25 @@ def main(page: ft.Page):
         value="Список дел на день", size=30, weight=ft.FontWeight.BOLD, italic=True
     )
 
+    # функция, которая будет возвращать список Row с задачами из БД
     def build_rows():
         rows = []
+        # проход по всем записям из таблицы todos
         for t in database.all_todos():
             print(t)
+            # каждую запись отображаем в виде строки Row
             rows.append(
                 ft.Row(
                     controls=[
-                        ft.Text(value=t[1], size=20, color=ft.Colors.PINK),
-                        ft.Text(value=t[2], size=20),
+                        ft.Text(value=t[1], size=20, color=ft.Colors.PINK),  # текст
+                        ft.Text(value=t[2], size=20),  # категория
+                        # кнопка для редактирования задачи
                         ft.IconButton(
                             icon=ft.Icons.EDIT_OUTLINED,
                             icon_color=ft.Colors.BLUE,
                             icon_size=20,
                         ),
+                        # кнопка для удаления задачи
                         ft.IconButton(
                             icon=ft.Icons.DELETE_OUTLINED,
                             icon_color=ft.Colors.RED,
@@ -38,12 +46,13 @@ def main(page: ft.Page):
             )
         return rows
 
-    # функция, которая будет вызываться при нажатии кнопки
+    # функция, которая будет вызываться при нажатии кнопки "Добавить"
     def add_todo(e):
         print(todo_input.value)
+        # добавляем задачу в БД через вызов метода add_todo
         database.add_todo(todo_input.value, category_input.value)
 
-        todo_list_area.controls = build_rows()
+        todo_list_area.controls = build_rows()  # обновляем отображаемый список
         todo_input.value = ""  # очищаем поле ввода
         category_input.value = ""
         todo_input.focus()
@@ -57,7 +66,7 @@ def main(page: ft.Page):
         label="Введите категорию",  # текст подсказки
     )
 
-    # создание кнопки
+    # создание кнопки для добавления задачи
     add_button = ft.ElevatedButton(
         "Добавить",  # текст на кнопке
         on_click=add_todo,  # функция, которая будет вызываться при нажатии
@@ -69,7 +78,9 @@ def main(page: ft.Page):
 
     # создание колонки
     todo_list_area = ft.Column(
-        expand=True, scroll="always", controls=build_rows()
+        expand=True,
+        scroll="always",
+        controls=build_rows(),  # список элементов, которые будут в колонке
     )  # место, где будет отображаться список
 
     # добавление элементов на страницу(окно)
