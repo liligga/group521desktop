@@ -39,3 +39,12 @@ class Database:
             cursor.execute("SELECT * FROM todos")
             # возвращает список кортежей!
             return cursor.fetchall()
+
+    def delete_todo(self, todo_id: int):
+        with sqlite3.connect(self.path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM todos WHERE id = ?", (todo_id,))
+            conn.commit()
+
+
+# expenses - таблица в ДЗ

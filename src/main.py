@@ -6,6 +6,8 @@ from pprint import pprint
 def main(page: ft.Page):
     # установка заголовка
     page.title = "Приложение для управления списком дел"
+    page.window.width = 1024
+    page.data = 0
 
     # создание объекта Database для работы с БД
     database = Database("database.sqlite")
@@ -27,6 +29,7 @@ def main(page: ft.Page):
             rows.append(
                 ft.Row(
                     controls=[
+                        ft.Text(value=str(t[0]), size=20),
                         ft.Text(value=t[1], size=20, color=ft.Colors.PINK),  # текст
                         ft.Text(value=t[2], size=20),  # категория
                         # кнопка для редактирования задачи
@@ -40,6 +43,8 @@ def main(page: ft.Page):
                             icon=ft.Icons.DELETE_OUTLINED,
                             icon_color=ft.Colors.RED,
                             icon_size=20,
+                            on_click=before_delete,
+                            data=t[0],
                         ),
                     ]
                 )
@@ -58,6 +63,21 @@ def main(page: ft.Page):
         todo_input.focus()
         page.update()  # обновляем страницу, обязательно а то не будет работать
 
+    def before_delete(e):
+        print("Todo ID на который нажали", e.control.data)
+        page.data = e.control.data
+        page.open(delete_modal)
+
+    def handle_close_delete(e):
+        page.close(delete_modal)
+
+    def delete_todo(e):
+        database.delete_todo(todo_id=page.data)
+        page.close(delete_modal)
+        #
+        todo_list_area.controls = build_rows()
+        page.update()
+
     # создание текстового поля
     todo_input = ft.TextField(
         label="Введите что-нибудь",  # текст подсказки
@@ -75,6 +95,22 @@ def main(page: ft.Page):
     )
 
     form_area = ft.Row(controls=[todo_input, category_input, add_button])
+
+    delete_modal = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Подтвердите удаление"),
+        content=ft.Text("Вы действительно хотите удалить задачу?"),
+        actions=[
+            ft.ElevatedButton(
+                "Удалить",
+                on_click=delete_todo,
+                bgcolor=ft.Colors.RED,
+                color=ft.Colors.WHITE,
+            ),
+            ft.ElevatedButton("Отменить", on_click=handle_close_delete),
+        ],
+        # actions_alignment=ft.MainAxisAlignment.END,
+    )
 
     # создание колонки
     todo_list_area = ft.Column(
