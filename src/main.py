@@ -6,8 +6,12 @@ from pprint import pprint
 def main(page: ft.Page):
     # установка заголовка
     page.title = "Приложение для управления списком дел"
+    # Задаем ширину окна
     page.window.width = 1024
-    page.data = 0
+
+    # data - свойство объекта page, которое может хранить любые данные
+    # которые будут использоваться в любом месте прилижения, работает как глобальная переменная
+    page.data = 0  # храним ID задачи, которую собираемся удалить
 
     # создание объекта Database для работы с БД
     database = Database("database.sqlite")
@@ -43,8 +47,10 @@ def main(page: ft.Page):
                             icon=ft.Icons.DELETE_OUTLINED,
                             icon_color=ft.Colors.RED,
                             icon_size=20,
-                            on_click=before_delete,
+                            on_click=open_delete_modal,
                             data=t[0],
+                            # data - свойство кнопки, в которое можем сохранить
+                            # любые данные, в данном случае ID задачи для удаления
                         ),
                     ]
                 )
@@ -63,18 +69,25 @@ def main(page: ft.Page):
         todo_input.focus()
         page.update()  # обновляем страницу, обязательно а то не будет работать
 
-    def before_delete(e):
+    # функция в которой открываем модальное окно
+    def open_delete_modal(e):
         print("Todo ID на который нажали", e.control.data)
+        # устанавливаем ID удаляемой задачи в качестве значения
+        # глобального свойства data у объекта page
         page.data = e.control.data
         page.open(delete_modal)
 
-    def handle_close_delete(e):
-        page.close(delete_modal)
+    # обработчик кнопки 'Отменить' при удалении
+    def close_delete_modal(e):
+        page.close(delete_modal)  # закрываем модальное окно
 
+    # обработчик кнопки 'Удалить' в модальном окне
     def delete_todo(e):
+        # делаем запрос в БД на удаление
         database.delete_todo(todo_id=page.data)
         page.close(delete_modal)
-        #
+
+        # отображаем обновленный список в интерфейсе
         todo_list_area.controls = build_rows()
         page.update()
 
@@ -96,20 +109,21 @@ def main(page: ft.Page):
 
     form_area = ft.Row(controls=[todo_input, category_input, add_button])
 
+    # модальное окно, используется для подтверждения удаления
     delete_modal = ft.AlertDialog(
         modal=True,
-        title=ft.Text("Подтвердите удаление"),
+        title=ft.Text("Подтвердите удаление"),  # заголовок модального окна
         content=ft.Text("Вы действительно хотите удалить задачу?"),
-        actions=[
+        actions=[  # кнопки 'Удалить' и 'Отменить'
             ft.ElevatedButton(
                 "Удалить",
                 on_click=delete_todo,
                 bgcolor=ft.Colors.RED,
                 color=ft.Colors.WHITE,
             ),
-            ft.ElevatedButton("Отменить", on_click=handle_close_delete),
+            ft.ElevatedButton("Отменить", on_click=close_delete_modal),
         ],
-        # actions_alignment=ft.MainAxisAlignment.END,
+        actions_alignment=ft.MainAxisAlignment.END,  # расположение кнопок, в данном случае справа
     )
 
     # создание колонки
