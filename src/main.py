@@ -11,7 +11,7 @@ def main(page: ft.Page):
 
     # data - свойство объекта page, которое может хранить любые данные
     # которые будут использоваться в любом месте прилижения, работает как глобальная переменная
-    page.data = 0  # храним ID задачи, которую собираемся удалить
+    page.data = 0  # храним ID задачи, которую собираемся удалить или редактировать
 
     # создание объекта Database для работы с БД
     database = Database("database.sqlite")
@@ -41,6 +41,8 @@ def main(page: ft.Page):
                             icon=ft.Icons.EDIT_OUTLINED,
                             icon_color=ft.Colors.BLUE,
                             icon_size=20,
+                            on_click=open_update_modal,
+                            data=t[0],
                         ),
                         # кнопка для удаления задачи
                         ft.IconButton(
@@ -69,7 +71,44 @@ def main(page: ft.Page):
         todo_input.focus()
         page.update()  # обновляем страницу, обязательно а то не будет работать
 
-    # функция в которой открываем модальное окно
+    # функция в которой открываем модальное окно для редактирования
+    def open_update_modal(e):
+        todo_id = e.control.data
+        print(f"Нажали на todo с ID {todo_id}")
+        page.data = todo_id
+        todo = database.get_one_todo(todo_id)
+        print(todo)
+        todo_input.value = todo[1]
+        category_input.value = todo[2]
+        page.open(update_modal)
+
+    # обработчик кнопки 'Отменить' при редактировании
+    def close_update_modal(e):
+        todo_input.value = ""
+        category_input.value = ""
+        page.close(update_modal)
+
+    # обработчик кнопки 'Сохранить' в модальном окне при редактировании
+    def update_todo(e):
+        # берем ID задачи из глобального свойства data
+        todo_id = page.data
+        # обновляем задачу в БД
+        database.update_todo(
+            todo_id=todo_id,
+            todo=todo_input.value,
+            category=category_input.value,
+        )
+        # закрываем модальное окно
+        page.close(update_modal)
+        # очищаем поля ввода
+        todo_input.value = ""
+        category_input.value = ""
+
+        # отображаем обновленный список задач в интерфейсе
+        todo_list_area.controls = build_rows()
+        page.update()
+
+    # функция в которой открываем модальное окно для удаления
     def open_delete_modal(e):
         print("Todo ID на который нажали", e.control.data)
         # устанавливаем ID удаляемой задачи в качестве значения
@@ -124,6 +163,28 @@ def main(page: ft.Page):
             ft.ElevatedButton("Отменить", on_click=close_delete_modal),
         ],
         actions_alignment=ft.MainAxisAlignment.END,  # расположение кнопок, в данном случае справа
+    )
+
+    # модальное окно, используется для редактирования задачи
+    update_modal = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Хотите изменить задачу?"),
+        # текстовые поля для редактирования задачи
+        content=ft.Column(
+            controls=[
+                todo_input,
+                category_input,
+            ]
+        ),
+        actions=[  # кнопки 'Сохранить' и 'Отменить'
+            ft.ElevatedButton(
+                "Сохранить",
+                on_click=update_todo,
+                bgcolor=ft.Colors.BLUE,
+                color=ft.Colors.WHITE,
+            ),
+            ft.ElevatedButton("Отменить", on_click=close_update_modal),
+        ],
     )
 
     # создание колонки
